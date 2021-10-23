@@ -1,7 +1,12 @@
 const path = require('path');
+process.NODE
 module.exports = {
+	mode:'development',
 	entry: './src/index.ts',
 	devtool: 'inline-source-map',
+	devServer: {
+		static: './dist',
+	},
 	module: {
 	  rules: [
 	    	{
