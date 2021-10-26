@@ -9,10 +9,11 @@
     "strict": true,
     "skipLibCheck": false,
     "sourceMap": true,
-    "typeRoots": ["./src/GLSL.d.ts"]
+    "typeRoots": ["./src/GLSL.d.ts"],
+    "moduleResolution": "node"
   },
   "include": [
-    "./src/"
+    "./src/**/*"
   ],
   "exclude": [
     "./dist",
