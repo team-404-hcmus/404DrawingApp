@@ -9,6 +9,7 @@
     "start-dev": "webpack serve --open"
   },
   "dependencies": {
+    "gl-matrix": "^3.4.3",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

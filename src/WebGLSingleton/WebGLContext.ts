@@ -1,15 +1,23 @@
 export class WebGLContextManager{
 	private static context:WebGL2RenderingContext|null = null;
+	private static canvas = document.getElementById('screen') as HTMLCanvasElement;
 	public static getWebGLContext(){
+		if(this.canvas ===null)
+			this.canvas = document.getElementById('screen') as HTMLCanvasElement;
 		if(this.context === null)
 		{
-			const canvas = document.getElementById('screen') as HTMLCanvasElement;
-			this.context = canvas?.getContext("webgl2") as WebGL2RenderingContext ?? null;
+			
+			this.context = this.canvas?.getContext("webgl2") as WebGL2RenderingContext ?? null;
 			if(!this.context)
 				throw "WebGl not supported or Canvas not found";
 			return this.context;
 		}
 		return this.context;
+	}
+	public static getDimension(){
+		if(this.canvas === null)
+			this.canvas = document.getElementById('screen') as HTMLCanvasElement;
+		return {width:this.canvas.width,height:this.canvas.height}
 	}
 
 }
