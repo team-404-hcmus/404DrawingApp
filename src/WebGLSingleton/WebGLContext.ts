@@ -19,5 +19,15 @@ export class WebGLContextManager{
 			this.canvas = document.getElementById('screen') as HTMLCanvasElement;
 		return {width:this.canvas.width,height:this.canvas.height}
 	}
+	public static getCanvas(){
+		if(this.canvas === null)
+		{
+
+			this.canvas = document.getElementById('screen') as HTMLCanvasElement;
+			return this.canvas;
+		}
+			
+		return this.canvas
+	}
 
 }

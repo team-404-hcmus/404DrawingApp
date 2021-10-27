@@ -10,19 +10,28 @@ function pixelToLocal(out:vec2,_v:ReadonlyVec2){
 	out[0] = _v[0]/dim.width;
 	out[1] = _v[1]/dim.height;
 }
+function recTangleToTri(arr:vec2[]){
+
+}
 class Line{
 	private vertices:vec2[] = [];
 	private	RenderedVertex:number[] = [];
 	private thickness:number;
-	private oldVerticesCount = 0;
-	constructor(thickness:number){
+	//private oldVerticesCount = 0;
+	private loop = false;
+	constructor(thickness = 1,loop = false){
 		this.thickness = thickness;
+		this.loop = loop;
 	}
 	public AddVertex(vertex:vec2|vec2[]){
+		if(this.loop)
+			this.vertices.pop();
 		if(Array.isArray(vertex))
 			this.AddArray(vertex as vec2[]);
 		else
 			this.AddSingle(vertex);
+		if(this.loop)
+			this.vertices.push(this.vertices[0]);
 		this.calcVertex();
 	}
 	private AddArray(_v:vec2[]){
@@ -34,25 +43,70 @@ class Line{
 
 	private calcVertex(){
 		if(this.vertices.length < 2) return;
-		console.log(this.oldVerticesCount)
-		for(let i = this.oldVerticesCount;i< this.vertices.length-1;++i)
+		// pls avoid magic number
+		const lastElementIndex = this.vertices.length-1;
+		// pls avoid magic number
+		const halfThickness = this.thickness/2;
+		let normalVectorArray:vec2[] = [];
+		for(let i = 0;i< lastElementIndex;++i)
 		{
-			const startV = this.vertices[i];
-			const endV = this.vertices[i+1];
-			let nVector:vec2 = [0,0];
-			vec2.sub(nVector,endV,startV);
-			vec2.normalize(nVector,nVector);
-			vec2.scale(nVector,nVector,this.thickness);
-			let nVector1:vec2 = [nVector[1],-nVector[0]] //get Normal Vector
-			console.log(nVector);
-			pixelToLocal(nVector1,nVector1);
-			let c:vec2 = [0,0];
-			let d:vec2 = [0,0];
-			vec2.add(c,startV,nVector1);
-			vec2.add(d,endV,nVector1);
-			console.log(c,d);
-			this.RenderedVertex.push(...startV,...c,...endV,...c,...endV,...d);
+			// startPont ------- nextPoint --------- endPoint
+			const nextIndex = i+ 1;
+			const afterNextIndex = i+2;
+			let uVector:vec2 = vec2.create();
+			vec2.subtract(uVector,this.vertices[nextIndex],this.vertices[i]);
+			let normalVector:vec2 = [uVector[1],-uVector[0]];
+			vec2.normalize(normalVector,normalVector)
+			let t = vec2.create();	
+			vec2.scale(t,normalVector,halfThickness);
+			pixelToLocal(t,t);
+			if(i === 0)			
+			{
+				let left = vec2.create();
+				let right = vec2.create();
+				vec2.add(right,this.vertices[i],t);
+				vec2.subtract(left,this.vertices[i],t);
+				this.RenderedVertex.push(...left,...right);
+			}
+			if(nextIndex >= lastElementIndex)
+			{
+				const lastRight = [
+					this.RenderedVertex[this.RenderedVertex.length-2],
+					this.RenderedVertex[this.RenderedVertex.length-1]
+							]
+				let left = vec2.create();
+				let right = vec2.create();
+				vec2.add(right,this.vertices[nextIndex],t);
+				vec2.subtract(left,this.vertices[nextIndex],t);
+				this.RenderedVertex.push(...left,...lastRight,...right,...left);
+			}
+			else{
+				let uVector:vec2 = vec2.create();
+				vec2.subtract(uVector,this.vertices[afterNextIndex],this.vertices[nextIndex]);
+				vec2.normalize(uVector,uVector);
+				let normal2:vec2 = [uVector[1],-uVector[0]];
+				let angle = vec2.create();
+				vec2.add(angle,normal2,normalVector);
+				vec2.normalize(angle,angle);
+				let cos = vec2.dot(angle,uVector);
+				let sin = Math.sqrt(1-cos*cos);
+				vec2.scale(angle,angle,halfThickness/sin);
+				let left = vec2.create();
+				let right = vec2.create();
+				const lastRight = [
+					this.RenderedVertex[this.RenderedVertex.length-2],
+					this.RenderedVertex[this.RenderedVertex.length-1]
+				]
+				pixelToLocal(angle,angle);
+				vec2.add(right,this.vertices[nextIndex],angle);
+				vec2.subtract(left,this.vertices[nextIndex],angle);
+				console.log()
+				this.RenderedVertex.push(...left,...lastRight,...right,...left,...left,...right);
+				
+			}
+
 		}
+		// |B|.Sin(theta) = Half_thickness
 	}
 	get Vertices(){
 		return this.RenderedVertex;
@@ -105,9 +159,19 @@ function main(){
 		-0.5, -0.5,
 		0.5, -0.5
 	];
-	const line = new Line(50);
-	line.AddVertex([[-0.8,0],[-0.1,0.0],[0.5,0.5],[0.5,-0.5]]);
-	console.log(line);
+	const line = new Line(50,true);
+	const generateBezier = (start:vec2,anchor:vec2,end:vec2,step = 0.2)=>{
+		const arr:vec2[] = [];
+		for(let i = 0; i <= 1; i+= step)
+		{
+			const result = vec2.create();
+			vec2.lerp(result,vec2.lerp(result, start,anchor,i),end,i);
+			arr.push(result);
+		}
+		return arr;
+	}
+	line.AddVertex(generateBezier([-0.5,0],[-1,-1],[0.5,0],0.01));
+	
 	var triangleVertexBufferObject = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBufferObject);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line.Vertices), gl.STATIC_DRAW);
@@ -120,21 +184,22 @@ function main(){
 		false,
 		2 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex
 		0 // Offset from the beginning of a single vertex to this attribute
-	);
-	gl.enableVertexAttribArray(positionAttribLocation);
-
-	//
-	// Main render loop
-	//
-	gl.useProgram(program);
-	gl.drawArrays(gl.TRIANGLES, 0,18);
-	
-
-	// const draw = () =>{
-	// 	console.log("test");
-	// 	requestAnimationFrame(draw);
-	// }
-	// requestAnimationFrame(draw)
-}
-
-main();
+		);
+		gl.enableVertexAttribArray(positionAttribLocation);
+		
+		//
+		// Main render loop
+		//
+		gl.useProgram(program);
+		gl.drawArrays(gl.TRIANGLES, 0,line.Vertices.length);
+		
+		
+		// const draw = () =>{
+			// 	console.log("test");
+			// 	requestAnimationFrame(draw);
+			// }
+			// requestAnimationFrame(draw)
+		}
+		
+		main();
+		
