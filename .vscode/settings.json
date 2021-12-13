@@ -3,6 +3,7 @@
 		"CREATESHADER",
 		"drawingapp",
 		"errono",
-		"glsl"
+		"glsl",
+		"mediump"
 	]
 }

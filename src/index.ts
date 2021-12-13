@@ -10,7 +10,10 @@ function pixelToLocal(out:vec2,_v:ReadonlyVec2){
 	out[0] = _v[0]/dim.width;
 	out[1] = _v[1]/dim.height;
 }
-function recTangleToTri(arr:vec2[]){
+class Triangle{
+	constructor(origin:vec2,size:vec2){
+
+	}
 
 }
 class Line{
@@ -160,7 +163,7 @@ function main(){
 		0.5, -0.5
 	];
 	const line = new Line(50,true);
-	const generateBezier = (start:vec2,anchor:vec2,end:vec2,step = 0.2)=>{
+	const generateBezier = (start:vec2,anchor:vec2,end:vec2,step = 0.1)=>{
 		const arr:vec2[] = [];
 		for(let i = 0; i <= 1; i+= step)
 		{
@@ -170,7 +173,7 @@ function main(){
 		}
 		return arr;
 	}
-	line.AddVertex(generateBezier([-0.5,0],[-1,-1],[0.5,0],0.01));
+	line.AddVertex(generateBezier([-0.5,0],[-1,-1],[0.5,0],0.001));
 	
 	var triangleVertexBufferObject = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBufferObject);
@@ -199,7 +202,7 @@ function main(){
 			// 	requestAnimationFrame(draw);
 			// }
 			// requestAnimationFrame(draw)
-		}
-		
-		main();
+}
+
+main();
 		
