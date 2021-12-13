@@ -19,11 +19,9 @@ const VertexShaderString = `
 precision mediump float;
 attribute vec2 vertPosition;
 attribute vec3 vertColor;
-varying vec3 fragColor;
-
 void main()
 {
-  fragColor = vertColor;
+
   gl_Position = vec4(vertPosition, 0.0, 1.0);
 }
 `;
@@ -38,7 +36,6 @@ WebGlContext?.shaderSource(VertexShader,VertexShaderString);
 */
 const FragmentShaderString = `
 precision mediump float;
-varying vec3 fragColor;
 void main()
 {
   gl_FragColor = vec4(1.0,0.0,0.0, 1.0);
@@ -61,11 +58,24 @@ WebGlContext?.linkProgram(mainProgram);
 //check if program is created successfully
 if (!WebGlContext?.getProgramParameter(mainProgram, WebGlContext?.LINK_STATUS)) {
 	console.error('ERROR linking program!', WebGlContext?.getProgramInfoLog(WebGlContext));
-	throw "";
+	throw 'ERROR linking program!';
 }
 
 WebGlContext?.validateProgram(mainProgram);
 if (!WebGlContext?.getProgramParameter(mainProgram, WebGlContext.VALIDATE_STATUS)) {
 	console.error('ERROR validating program!', WebGlContext?.getProgramInfoLog(WebGlContext));
-	throw "";
+	throw 'ERROR linking program!';
 }
+
+
+// create data buffer
+// this buffer contain vertex coordinate info
+let vertexBuffer = WebGlContext.createBuffer();
+//bind buffer to vertexBuffer
+WebGlContext.bindBuffer(WebGlContext.ARRAY_BUFFER,vertexBuffer);
+// write data to buffer with bufferData function
+WebGlContext.bufferData(WebGlContext.ARRAY_BUFFER,new Float32Array([]),WebGlContext.STATIC_DRAW);
+let positionAttrLocation = WebGlContext.getAttribLocation(mainProgram,'vertPosition'); //vertPosition is the name of variable in shader
+WebGlContext.vertexAttribPointer(positionAttrLocation,2,WebGlContext.FLOAT,false,2*Float32Array.BYTES_PER_ELEMENT,0);
+WebGlContext.enableVertexAttribArray(positionAttrLocation);
+gl
