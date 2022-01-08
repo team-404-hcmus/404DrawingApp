@@ -1,93 +1,99 @@
-/*
+import * as PIXI from 'pixi.js';
 
-	Get the WebGl context from htmlCanvas Element
+const app = new PIXI.Application();
+document.body.appendChild(app.view);
 
-*/
+window.addEventListener('load',()=>{
+	app.view.width = window.innerWidth;
+	app.view.height = window.innerHeight;	
 
+})
+window.addEventListener('resize',()=>{
+	app.view.width = window.innerWidth;
+	app.view.height = window.innerHeight;	
+})
+declare global{
+	interface Window { WebFontConfig:any}
 
-const canvas = document.getElementById("screen") as HTMLCanvasElement;
-const WebGlContext = canvas.getContext("webgl2");
-
-
-
-/*
-	Shader usually save in string (or use glsl file and pack with js via webpack technology)
-	Create Shader:
-		Vertex Shader.
-*/
-
-const VertexShaderString = `
-precision mediump float;
-attribute vec2 vertPosition;
-attribute vec3 vertColor;
-void main()
-{
-
-  gl_Position = vec4(vertPosition, 0.0, 1.0);
 }
-`;
+// // Load them google fonts before starting...!
+window.WebFontConfig = {
+    google: {
+        families: ['Snippet', 'Arvo:700italic', 'Podkova:700'],
+    },
 
-const VertexShader = WebGlContext?.createShader(WebGlContext.VERTEX_SHADER) as WebGLShader;
-WebGlContext?.shaderSource(VertexShader,VertexShaderString);
-WebGlContext?.compileShader(VertexShader);
-/*
-	Shader usually save in string (or use glsl file and pack with js via webpack technology)
-	Create Shader:
-		Vertex Shader.
-*/
-const FragmentShaderString = `
-precision mediump float;
-void main()
-{
-  gl_FragColor = vec4(1.0,0.0,0.0, 1.0);
+    active() {
+        init();
+    },
+};
+
+/* eslint-disable */
+// include the web-font loader script
+(function() {
+    const wf = document.createElement('script');
+    wf.src = `${document.location.protocol === 'https:' ? 'https' : 'http'
+    }://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js`;
+    wf.type = 'text/javascript';
+    wf.async = true;
+    const s = document.getElementsByTagName('script')[0];
+    s.parentNode?.insertBefore(wf, s);
+}());
+/* eslint-enabled */
+
+function init() {
+    // create some white text using the Snippet webfont
+    const form = document.getElementById('slidecontainer');
+    const labelAngle = document.createElement('div');
+    labelAngle.textContent = "Angle";
+    const SkewAngle = document.createElement('div');
+    SkewAngle.textContent = "Skew";
+    const Angle = document.createElement("input");
+    Angle.type = 'range';
+    Angle.max = '360';
+    Angle.min = '0';
+    Angle.style.display = 'block';
+    form?.appendChild(Angle);
+const Skew = document.createElement("input");
+    Skew.type = 'range';
+    Skew.max = '85';
+    Skew.min = '-85';
+    Skew.style.display = 'block';
+    form?.appendChild(labelAngle);
+    form?.appendChild(Angle);
+    form?.appendChild(SkewAngle);
+    form?.appendChild(Skew);
+    const textBox = document.createElement("input");
+    textBox.type = 'text';
+    textBox.style.display = 'block';
+    form?.appendChild(textBox)
+    const textSample = new PIXI.Text('Text to show', {
+	    fontFamily: 'Snippet',
+	    fontSize: 50,
+	    fill: 'white',
+	    align: 'left',
+	});
+    let x=0;
+    let y= 0;
+	textSample.position.set(x,y);
+	textSample.anchor.set(0.5,0.5);
+	textSample.text ='123';
+	app.stage.addChild(textSample);
+	Angle.addEventListener('input',(e)=>{
+		const element = e.target as HTMLInputElement;
+		textSample.angle = 30;
+    
+	})
+	Skew.addEventListener('input',(e)=>{
+		const element = e.target as HTMLInputElement;
+		textSample.skew.set(parseInt(element.value)*PIXI.DEG_TO_RAD,0);
+    
+	})
+	textBox.addEventListener('input',(e)=>{
+		const element = e.target as HTMLInputElement;
+		textSample.text = element.value;
+	})
+	window.addEventListener('resize',(e)=>{
+		textSample.position.set(window.innerWidth/2,window.innerHeight/2);
+	})
 }
-`;
-const FragmentShader = WebGlContext?.createShader(WebGlContext.FRAGMENT_SHADER) as WebGLShader;
-WebGlContext?.shaderSource(FragmentShader,FragmentShaderString);
-WebGlContext?.compileShader(FragmentShader);
 
-
-/*
-	Create a program.
-	a program is a rendering pipeline.
-	each shader attach order is according to their processing order.
-*/
-
-const mainProgram = WebGlContext?.createProgram() as WebGLProgram;
-WebGlContext?.attachShader(mainProgram,VertexShader);
-WebGlContext?.attachShader(mainProgram,FragmentShader);
-WebGlContext?.linkProgram(mainProgram);
-//check if program is created successfully
-if (!WebGlContext?.getProgramParameter(mainProgram, WebGlContext?.LINK_STATUS)) {
-	console.error('ERROR linking program!', WebGlContext?.getProgramInfoLog(mainProgram));
-	throw 'ERROR linking program!';
-}
-
-WebGlContext?.validateProgram(mainProgram);
-if (!WebGlContext?.getProgramParameter(mainProgram, WebGlContext.VALIDATE_STATUS)) {
-	console.error('ERROR validating program!', WebGlContext?.getProgramInfoLog(mainProgram));
-	throw 'ERROR linking program!';
-}
-
-
-// create data buffer
-// this buffer contain vertex coordinate info
-let vertexBuffer = WebGlContext.createBuffer();
-//bind buffer to vertexBuffer
-WebGlContext.bindBuffer(WebGlContext.ARRAY_BUFFER,vertexBuffer);
-// write data to buffer with bufferData function
-WebGlContext.bufferData(WebGlContext.ARRAY_BUFFER,new Float32Array([
-	-0.5,-0.5
-	,-0.5,0.5
-	,0.5,0.5
-	,0.5,-0.5]),WebGlContext.STATIC_DRAW);
-let indexBuffer = WebGlContext.createBuffer();
-WebGlContext.bindBuffer(WebGlContext.ELEMENT_ARRAY_BUFFER,indexBuffer);
-WebGlContext.bufferData(WebGlContext.ELEMENT_ARRAY_BUFFER,new Int32Array([0,1,2,0,2,3]),WebGlContext.STATIC_DRAW);
-let positionAttrLocation = WebGlContext.getAttribLocation(mainProgram,'vertPosition'); //vertPosition is the name of variable in shader
-WebGlContext.vertexAttribPointer(positionAttrLocation,2,WebGlContext.FLOAT,false,2*Float32Array.BYTES_PER_ELEMENT,0);
-
-WebGlContext.enableVertexAttribArray(positionAttrLocation);
-WebGlContext.useProgram(mainProgram);
-// WebGlContext.drawArrays(WebGlContext.TRIANGLES, 0,3);
-WebGlContext.drawElements(WebGlContext.TRIANGLES,3,WebGlContext.UNSIGNED_INT,0);
