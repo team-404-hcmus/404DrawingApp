@@ -4,6 +4,8 @@
 		"drawingapp",
 		"errono",
 		"glsl",
-		"mediump"
+		"mediump",
+		"slidecontainer",
+		"webfont"
 	]
 }

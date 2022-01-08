@@ -20,14 +20,25 @@
 			width: 100vw;
 		}
 		canvas{
-			border: 1px solid black;
-			box-shadow: 10px 10px 26px -11px rgba(0,0,0,0.75);
-			-webkit-box-shadow: 10px 10px 26px -11px rgba(0,0,0,0.75);
-			-moz-box-shadow: 10px 10px 26px -11px rgba(0,0,0,0.75);
-		}
+			position: fixed;
+			top: 0;
+			left: 0;
+	}
+	#slidecontainer{
+		position: fixed;
+		z-index: 10000;
+		top:0;
+		left: 0;
+		background-color: white;
+		border: 1px solid black;
+		box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
+		padding: 10px;
+
+	}
 	</style>
 </head>
 <body>
-	<canvas id="screen" width="800px" height="600px"></canvas>
+	<div onsubmit="submit()" id="slidecontainer">
+	</div>
 </body>
 </html>
